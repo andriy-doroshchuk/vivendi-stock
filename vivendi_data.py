@@ -61,18 +61,7 @@ class VivendiStock:
         except Exception:
             return 0
 
-    def high_day_price(self, id: str) -> float:
-        try:
-            return float(self.stock_data.High[id].values[-1])
-        except Exception:
-            return 0
-
-    def low_day_price(self, id: str) -> float:
-        try:
-            return float(self.stock_data.Low[id].values[-1])
-        except Exception:
-            return 0
-
 
 if __name__ == '__main__':
     stock = VivendiStock()
+    print(stock.stock_data)

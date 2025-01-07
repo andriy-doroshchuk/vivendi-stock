@@ -34,11 +34,8 @@ app_pages = {
 
 def get_company_graph(key):
     name = app_data.name(key)
-    current_price = app_data.current_price(key)
-    highest_price = app_data.high_day_price(key)
-    lowest_price = app_data.low_day_price(key)
+    current_price, change_percent = app_data.current_price(key)
 
-    change_percent = app_data.price_change(key)
     if change_percent > 0:
         change_percent = f'+{change_percent}%'
         change_color = 'success'

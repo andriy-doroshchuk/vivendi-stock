@@ -67,15 +67,6 @@ class VivendiStock:
         with open(data_file, mode='wt', encoding='utf8') as f:
             json.dump(json_data, f, sort_keys=True, indent=4, separators=(',', ' : '))
 
-    def keys(self) -> Sequence:
-        return STOCK.keys()
-
-    def name(self, id: str) -> str:
-        try:
-            return STOCK[id]['name']
-        except Exception:
-            return '<unknown>'
-
     def get_data(self, id: str) -> Tuple[pandas.Series, float, float]:
         try:
             series = self.data[id]

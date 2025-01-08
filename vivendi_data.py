@@ -1,19 +1,43 @@
 import os
-import yfinance
-import pandas
 import json
 import requests
+import pandas
+import yfinance
 from typing import Sequence, Tuple
 
+def get_exchange_rate(base: str, target: str, date: pandas.Timestamp = None) -> float:
+    base = base.lower()
+    target = target.lower()
+    date = date.strftime('%Y-%m-%d') if date is not None else 'latest'
+    urls = [
+        f'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@{date}/v1/currencies/{base}.json',
+        f'https://{date}.currency-api.pages.dev/v1/currencies/{base}.json'
+    ]
+    for url in urls:
+        try:
+            response = requests.get(url)
+            parsed_response = response.json()
+            return parsed_response[base][target]
+        except Exception:
+            pass
+    return 0.0
+
+def calc_day_value(row):
+    print(row.keys())
 
 class VivendiStock:
-    app_stock = {
+    stock_names = {
         "VIV.PA": "Vivendi SE",
         "HAVAS.AS": "Havas N.V",
         "CAN.L": "Canal+ SA",
         "ALHG.PA": "Louis Hachette Group S.A.",
     }
-    api_key = 'f8ce3957e9cf680f04bba1a3'
+    stock_currency = {
+        "VIV.PA": "EUR",
+        "HAVAS.AS": "EUR",
+        "CAN.L": "GBP",
+        "ALHG.PA": "EUR",
+    }
 
     def __init__(self):
         data_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'storage.json')
@@ -39,11 +63,11 @@ class VivendiStock:
             json.dump(json_data, f, sort_keys = True, indent = 4, separators=(',', ' : '))
 
     def keys(self) -> Sequence:
-        return self.app_stock.keys()
+        return self.stock_names.keys()
 
     def name(self, id: str) -> str:
         try:
-            return self.app_stock[id]
+            return self.stock_names[id]
         except Exception:
             return '<unknown>'
 
@@ -67,7 +91,7 @@ class VivendiStock:
             return 0, 0
         
     def _update_data(self, current_data: pandas.DataFrame = None) -> pandas.DataFrame:
-        latest_data = yfinance.download([k for k in self.app_stock.keys()],
+        latest_data = yfinance.download([k for k in self.stock_names.keys()],
                                         interval="1d", start="2024-12-15", rounding=True).Close
         
         if current_data is None:
@@ -82,20 +106,19 @@ class VivendiStock:
             current_data = latest_data
         
         # initialize exchange data
-        # https://stackoverflow.com/questions/3139879/how-do-i-get-currency-exchange-rates-via-an-api-such-as-google-finance
         for curr in ('EUR', 'GBP'):
             for d in current_data.index:
                 rate = current_data[curr][d]
-                if rate is None or rate == 0.0:
-                    url = f'https://v6.exchangerate-api.com/v6/{self.api_key}/pair/{curr}/AUD'
-                    response = requests.get(url)
-                    parsed_response = response.json()
-                    if 'conversion_rate' in parsed_response:
-                        current_data.loc[d, curr] = parsed_response['conversion_rate']
-                        break
+                if rate == 0.0:
+                    current_data.loc[d, curr] = get_exchange_rate(curr, 'AUD', d)
+
+        # recalculate stock value
+        stock_value = [0.0] * len(current_data.index)
+        kwargs = { 'VAL.1000' : pandas.Series(stock_value, index = current_data.index) }
+        kwargs = { 'VAL.1000' : lambda row: calc_day_value(row) }
+        current_data = current_data.assign(**kwargs)
 
         return current_data
-
 
 
 if __name__ == '__main__':

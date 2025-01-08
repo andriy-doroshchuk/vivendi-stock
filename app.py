@@ -1,40 +1,11 @@
-import time
 from dash import Dash, dcc, html, Input, Output
-from vivendi_data import VivendiStock
+from vivendi_data import VivendiStock, STOCK
 
 app_data = VivendiStock()
-app_pages = {
-    '/': html.Div([
-        html.Div(className='container', children=[
-            html.Hr(className='seperator'),
-            html.Div(className='row', children=[
-                html.Div(className='col-sm-12', children=[
-                    html.Form(children=[
-                        html.Fieldset(children=[
-                            html.Div(className='form-group', children=[
-                                html.Label(children='Shares amount'),
-                                dcc.Slider(id='amount',
-                                           min=1, max=4, value=2,
-                                           marks={i: f'{i*500}' for i in range(1, 5)}
-                                           ),
-                            ])
-                        ])
-                    ])
-                ])
-            ]),
-            html.Div(className='row', children=[
-                html.Div(className='col-sm-12', children=[
-                    html.Div(id='output_graph')
-                ])
-            ])
-        ])
-    ]),
-}
 
 
-def get_company_graph(key):
-    name = app_data.name(key)
-    current_price, change_percent = app_data.current_price(key)
+def get_graph(key, name):
+    history, current_price, change_percent = app_data.get_data(key)
 
     if change_percent > 0:
         change_percent = f'+{change_percent}%'
@@ -46,7 +17,7 @@ def get_company_graph(key):
     return html.Div(className='row', children=[
         html.Div(className='col-sm-10', children=[
             dcc.Graph(id=f'stocks_graph_{key}', figure={
-                'data': [{'x': app_data.index(), 'y': app_data.price(key), 'type': 'line', 'name': key}],
+                'data': [{'x': history.index, 'y': history, 'type': 'line', 'name': key}],
                 'layout': {'title': f'{name} ({key})'}
             })
         ]),
@@ -71,36 +42,14 @@ app.css.append_css({'external_url': './static/stylesheets/bootstrap.css'})
 app.css.append_css({'external_url': './static/stylesheets/styles.css'})
 
 app.config['suppress_callback_exceptions'] = True
+
+graphs = [get_graph('AUD.VALUE', 'Estimated value in AUD')]
+graphs += [get_graph(stock, STOCK[stock]['name']) for stock in STOCK]
+
 app.layout = html.Div(children=[
-    dcc.Location(id='url', refresh=False),
     html.H3(className='center-align big-Close', children='Vivendi Group Stock Value Tracker'),
-    html.Div(id='page-content')
+    html.Div(className='container', children=graphs)
 ])
-
-
-@app.callback(Output('page-content', 'children'),
-              [Input('url', 'pathname')])
-def display_page(pathname):
-    try:
-        return app_pages[pathname]
-    except:
-        return app_pages['/']
-
-
-@app.callback(Output(component_id='output_graph', component_property='children'),
-              [Input(component_id='amount', component_property='value')])
-def update_graph(amount_data):
-    try:
-        rows = []
-        for sid in app_data.keys():
-            rows.append(html.Hr(className='seperator'))
-            rows.append(get_company_graph(sid))
-        return html.Div(className='container', children=rows)
-
-    except Exception as e:
-        print(f'Exception: {e}')
-        time.sleep(1)
-
 
 if __name__ == '__main__':
     app.run_server(host='0.0.0.0', port=8050, debug=True)

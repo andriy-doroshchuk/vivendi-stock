@@ -1,5 +1,6 @@
 import os
 import json
+import datetime
 import requests
 import pandas
 import yfinance
@@ -50,7 +51,10 @@ class VivendiStock:
             self.data = None
 
         # update data from providers
-        self.data = self._update_data(self.data)
+        self.last_update = datetime.datetime.now()
+        if self.data is None or \
+            self.last_update - self.data.index.max().to_pydatetime() > datetime.timedelta(days = 1):
+            self.data = self._update_data(self.data)
 
         # convert and save
         json_data = json.loads(self.data.to_json(date_format = 'iso'))
@@ -86,6 +90,10 @@ class VivendiStock:
             return curr_price, price_change
         except Exception:
             return 0, 0
+
+    def update(self):
+        if datetime.datetime.now() - self.last_update > datetime.timedelta(days = 1):
+            self.data = self._update_data(self.data)
         
     def _update_data(self, current_data: pandas.DataFrame = None) -> pandas.DataFrame:
         currencies = ('EUR.AUD', 'GBP.AUD')
@@ -98,7 +106,7 @@ class VivendiStock:
             kwargs = { k : zero_values for k in currencies }
         elif len(current_data.index) < len(latest_data.index):
             zero_values = [0.0] * (len(latest_data.index) - len(current_data.index))
-            kwargs = { k : current_data[k].values + zero_values for k in currencies }
+            kwargs = { k : (current_data[k].to_list() + zero_values) for k in currencies }
       
         kwargs = { k : pandas.Series(kwargs[k], index = latest_data.index) for k in kwargs }
         current_data = latest_data.assign(**kwargs)

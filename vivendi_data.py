@@ -94,6 +94,8 @@ class VivendiStock:
         elif len(current_data.index) < len(latest_data.index):
             zero_values = [0.0] * (len(latest_data.index) - len(current_data.index))
             kwargs = {k: (current_data[k].to_list() + zero_values) for k in currencies}
+        else:
+            kwargs = {k: current_data[k].to_list() for k in currencies}
 
         kwargs = {k: pandas.Series(kwargs[k], index=latest_data.index) for k in kwargs}
         current_data = latest_data.assign(**kwargs)

@@ -57,5 +57,10 @@ def update_graphs(_):
     return html.Div(className='container', children=graphs)
 
 
+def appliction():
+    app.run(port=8050, debug=True)
+
+
 if __name__ == '__main__':
-    app.run_server(host='0.0.0.0', port=8050, debug=True)
+    # app.run(host='0.0.0.0', port=8050, debug=True)
+    app.run(port=8050, debug=True)

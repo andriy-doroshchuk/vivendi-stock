@@ -1,14 +1,12 @@
 from dash import Dash, dcc, html, Input, Output, callback
 from vivendi_data import VivendiStock, STOCK
 
-# define the app
-app = Dash('Stock tracker')
+app = Dash('Stock tracker') #, server = server)
 app.css.config.serve_locally = False
 app.css.append_css({'external_url': './static/stylesheets/bootstrap.css'})
 app.css.append_css({'external_url': './static/stylesheets/styles.css'})
 
 app.config['suppress_callback_exceptions'] = True
-
 app.layout = html.Div(children=[
     html.H3(className='center-align big-Close', children='Vivendi Group Stock Value Tracker'),
     html.Div(className='container center-align', children=[
@@ -16,7 +14,6 @@ app.layout = html.Div(children=[
     ]),
     html.Div(id='output-graphs')
 ])
-
 
 @callback(Output('output-graphs', 'children'), Input('refresh-button', 'n_clicks'))
 def update_graphs(_):
@@ -57,10 +54,5 @@ def update_graphs(_):
     return html.Div(className='container', children=graphs)
 
 
-def appliction():
-    app.run(port=8050, debug=True)
-
-
 if __name__ == '__main__':
-    # app.run(host='0.0.0.0', port=8050, debug=True)
-    app.run(port=8050, debug=True)
+    app.run(host='0.0.0.0', port=8051, debug=True)

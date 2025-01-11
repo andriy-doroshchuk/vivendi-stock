@@ -8,7 +8,7 @@ if app_dir not in sys.path:
 os.chdir(app_dir)
 
 from logger import enable_logger
-enable_logger()
+# enable_logger()
 
 from dash_app import app
 application = app.server

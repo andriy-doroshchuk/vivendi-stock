@@ -67,6 +67,9 @@ app.css.append_css({'external_url': './static/stylesheets/styles.css'})
 app.config['suppress_callback_exceptions'] = True
 app.layout = html.Div(children=[
     html.H3(className='center-align big-Close', children='Vivendi Group Stock Value Tracker'),
+    html.Div(className='container center-align', children=[
+        html.Button(className="btn btn-primary", id='refresh-button', n_clicks=0, children='Refresh')
+    ]),
     html.Br(),
     html.Div(className='container', children=[
         html.Div(className='row', children=[
@@ -79,16 +82,13 @@ app.layout = html.Div(children=[
             html.Div(className='col-sm-1', children=[])
         ])
     ]),
-    # html.Div(className='container center-align', children=[
-    #     html.Button(className="btn btn-primary", id='refresh-button', n_clicks=0, children='Refresh')
-    # ]),
-    # html.Br(),
+    html.Br(),
     stock_graphs()
 ])
 
 
-# @callback(Output('output-graphs', 'children'), Input('refresh-button', 'n_clicks'))
-# def update_graphs(_): return stock_graphs()
+@callback(Output('output-graphs', 'children'), Input('refresh-button', 'n_clicks'))
+def update_graphs(_): return stock_graphs()
 
 
 if __name__ == '__main__':

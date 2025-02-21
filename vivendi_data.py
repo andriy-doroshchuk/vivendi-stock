@@ -74,7 +74,7 @@ class VivendiStock:
             curr_price = prices[-1]
             prev_price = prices[-2]
             price_change = round(((curr_price - prev_price) / prev_price) * 100, 2)
-            return series, curr_price, price_change
+            return series, round(curr_price, 3), price_change
         except Exception:
             return pandas.Series(index=self.data.index), 0, 0
 
@@ -117,3 +117,5 @@ class VivendiStock:
 if __name__ == '__main__':
     stock = VivendiStock()
     print(stock.data)
+    _, curr_price, change = stock.get_data('HAVAS.AS')
+    print (curr_price, change)

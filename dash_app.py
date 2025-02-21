@@ -1,5 +1,7 @@
+import datetime
 from dash import Dash, dcc, html, Input, Output, callback
 from vivendi_data import VivendiStock, STOCK
+
 
 def stock_graphs():
     app_data = VivendiStock()
@@ -55,9 +57,12 @@ def stock_graphs():
 
         return graph
 
-    graphs = [get_graph('AUD.VALUE', 'Estimated value in AUD')]
+    timestamp = datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')
+    graphs = [html.Div(className='center-align', children=f'Generated {timestamp}')]
+    graphs += [get_graph('AUD.VALUE', 'Estimated value in AUD')]
     graphs += [get_graph(stock, STOCK[stock]['name']) for stock in STOCK]
     return html.Div(className='container', children=graphs)
+
 
 app = Dash('Stock tracker')
 app.css.config.serve_locally = False
@@ -83,7 +88,7 @@ app.layout = html.Div(children=[
         ])
     ]),
     html.Br(),
-    stock_graphs()
+    html.Div(id='output-graphs')
 ])
 
 

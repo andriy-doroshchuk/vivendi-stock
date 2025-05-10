@@ -1,2 +1,9 @@
 __pycache__/
 .vscode/launch.json
+data/ALHG.PA.json
+data/CAN.L.json
+data/EUR.AUD.json
+data/GBP.AUD.json
+data/HAVAS.AS.json
+data/VIV.PA.json
+data/new_data.json

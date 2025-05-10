@@ -4,7 +4,7 @@ import pandas
 
 from typing import Tuple
 from web_api import download_stock_data, download_exchange_rate
-from web_api import load_cached_data, save_cached_data
+from web_api import get_api_key, load_cached_data, save_cached_data
 
 
 DATA_STORAGE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
@@ -50,8 +50,10 @@ def update_stock_data(current_data: pandas.DataFrame, new_data: pandas.DataFrame
 
 
 class VivendiStock:
-    def __init__(self, api_key: str):
-        self.api_key = api_key
+    def __init__(self):
+        self.api_key = get_api_key()
+        if self.api_key is None:
+            raise ValueError('API key is required')
         self.data = load_cached_data('cache.json')
         self.last_update = self.data.last_valid_index()
         self.update()
@@ -79,7 +81,7 @@ class VivendiStock:
 
 
 if __name__ == '__main__':
-    stock = VivendiStock(api_key=os.getenv('ALPHAVANTAGE_API_KEY'))
+    stock = VivendiStock()
     print(stock.data)
     _, curr_price, change = stock.get_data('HAVAS.AS')
     print(curr_price, change)

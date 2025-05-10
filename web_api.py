@@ -4,7 +4,22 @@ import requests
 import pandas
 
 
-DATA_STORAGE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
+APP_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+DATA_STORAGE = os.path.join(APP_ROOT, 'data')
+
+
+def get_api_key() -> str:
+    api_key = os.getenv('ALPHAVANTAGE_API_KEY')
+    if api_key:
+        return api_key
+    # try to load from file
+    try:
+        with open(os.path.join(APP_ROOT, 'api.key'), encoding='utf8') as f:
+            api_key = f.readline()
+        return api_key.strip()
+    except Exception as e:
+        print(f'error: {e}')
+    return None
 
 
 def load_json_data(file_name: str) -> dict:

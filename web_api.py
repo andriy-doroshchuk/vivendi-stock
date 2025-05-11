@@ -38,7 +38,9 @@ def load_cached_data(file_name: str) -> pandas.DataFrame:
     try:
         if os.path.isfile(data_file):
             with open(data_file, encoding='utf8') as f:
-                return pandas.read_json(f)
+                data_frame = pandas.read_json(f)
+                data_frame.index = pandas.to_datetime(data_frame.index).normalize()
+                return data_frame
     except Exception as e:
         print(f'error: {e}')
     return pandas.DataFrame()
@@ -56,13 +58,17 @@ def save_json_data(data: dict, file_name: str) -> None:
 
 
 def save_cached_data(data: pandas.DataFrame, file_name: str) -> None:
-    save_json_data(json.loads(data.to_json(date_format='iso')), file_name)
+    try:
+        jsons = data.to_json(date_format='iso')
+        save_json_data(json.loads(jsons), file_name)
+    except Exception as e:
+        print(f'error: {e}')
 
 
 def __download_query(api_key: str, function: str, query_id: str) -> dict:
     url = f'https://www.alphavantage.co/query?function={function}&outputsize=compact&datatype=json&apikey={api_key}'
 
-    data = load_json_data(f'{query_id}.json')
+    data = load_json_data(f'{query_id}.json') if os.getenv('ALPHAVANTAGE_CACHE') else {}
     if data:
         print(f'using cached data for {query_id}')
     else:
@@ -82,7 +88,7 @@ def __download_exchange_pair(api_key: str, exchange_pair: str) -> dict:
     return __download_query(api_key, f'FX_DAILY&from_symbol={from_symbol}&to_symbol={to_symbol}', exchange_pair)
 
 
-def download_stock_data(api_key: str, stock_symbols, currency_pairs) -> pandas.DataFrame:
+def download_stock_data(stock_symbols, currency_pairs) -> pandas.DataFrame:
     def get_daily_close_price(series: str, data: dict) -> dict:
         def get_day_close_price(day_data: dict) -> float:
             for key in day_data:
@@ -97,6 +103,7 @@ def download_stock_data(api_key: str, stock_symbols, currency_pairs) -> pandas.D
             return {}
 
     try:
+        api_key = get_api_key()
         # download stock data
         stock_data = {symbol: get_daily_close_price('Time Series (Daily)', __download_stock_symbol(api_key, symbol))
                       for symbol in stock_symbols}
@@ -104,13 +111,13 @@ def download_stock_data(api_key: str, stock_symbols, currency_pairs) -> pandas.D
                          for currency in currency_pairs}
         stock_data.update(exchange_data)
         # ensure that all stock data has the same dates
-        dates = set()
-        for symbol in stock_data:
-            dates.update(stock_data[symbol].keys())
-        dates = sorted(dates, reverse=True)
-        stock_data = {symbol: {date: stock_data[symbol].get(date, 0.0) for date in dates} for symbol in stock_data}
+        dates = [set(stock_data[symbol].keys()) for symbol in stock_data]
+        dates = set.intersection(*dates)
+        stock_data = {symbol: {date: stock_data[symbol][date] for date in dates} for symbol in stock_data}
         # convert to DataFrame
-        return pandas.DataFrame().from_dict(stock_data, orient='columns')
+        data_frame = pandas.DataFrame().from_dict(stock_data, orient='columns')
+        data_frame.index = pandas.to_datetime(data_frame.index).normalize()
+        return data_frame
     except Exception as e:
         print(f'error: {e}')
         return pandas.DataFrame()

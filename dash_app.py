@@ -31,26 +31,27 @@ def stock_graphs():
                     ])
                 ]),
                 html.Div(className='row', children=[
-                    dcc.Graph(id=f'stocks_graph_{key}',
-                              figure={
-                                  'data': [{
-                                      'x': history.index,
-                                      'y': history,
-                                      'type': 'line',
-                                      'name': key
-                                  }],
-                                  'layout': {
-                                      # 'title' : f'{name} ({key})',
-                                      'height': 400  # px
-                                  }
-                              },
-                              config={
-                                  'displayModeBar': False,
-                                  'displaylogo': False,
-                                  'scrollZoom': False,
-                                  'staticPlot': True
-                              }
-                              )
+                    dcc.Graph(
+                        id=f'stocks_graph_{key}',
+                        figure={
+                            'data': [{
+                                'x': history.index,
+                                'y': history,
+                                'type': 'line',
+                                'name': key
+                            }],
+                            'layout': {
+                                # 'title' : f'{name} ({key})',
+                                'height': 400  # px
+                            }
+                        },
+                        config={
+                            'displayModeBar': False,
+                            'displaylogo': False,
+                            'scrollZoom': False,
+                            'staticPlot': True
+                        }
+                    )
                 ])
             ])
         ])
@@ -60,6 +61,7 @@ def stock_graphs():
     timestamp = datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')
     graphs = [html.Div(className='center-align', children=f'Generated {timestamp}')]
     graphs += [get_graph('AUD.VALUE', 'Estimated value in AUD')]
+    graphs += [get_graph('STOCK.VALUE', 'Estimated stock value in AUD')]
     graphs += [get_graph(stock, STOCK[stock]['name']) for stock in STOCK]
     return html.Div(className='container', children=graphs)
 

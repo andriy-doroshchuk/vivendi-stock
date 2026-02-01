@@ -2,6 +2,7 @@ import os
 import json
 import requests
 import pandas
+import time
 
 
 APP_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)))
@@ -65,6 +66,20 @@ def save_cached_data(data: pandas.DataFrame, file_name: str) -> None:
         print(f'error: {e}')
 
 
+last_api_call = 0
+
+
+def __execute_api_request(url: str) -> dict:
+    global last_api_call
+    elapsed = time.time() - last_api_call
+    if elapsed < 3.0:
+        time.sleep(3.0 - elapsed)
+    last_api_call = time.time()
+    print(f'> {url}')
+    response = requests.get(url)
+    return response.json()
+
+
 def __download_query(api_key: str, function: str, query_id: str) -> dict:
     url = f'https://www.alphavantage.co/query?function={function}&outputsize=compact&datatype=json&apikey={api_key}'
 
@@ -72,8 +87,7 @@ def __download_query(api_key: str, function: str, query_id: str) -> dict:
     if data:
         print(f'using cached data for {query_id}')
     else:
-        response = requests.get(url)
-        data = response.json()
+        data = __execute_api_request(url)
 
     save_json_data(data, f'{query_id}.json')
     return data
@@ -135,8 +149,7 @@ def download_exchange_rate(currency: str, date: pandas.Timestamp = None) -> floa
     ]
     for url in urls:
         try:
-            response = requests.get(url)
-            parsed_response = response.json()
+            parsed_response = __execute_api_request(url)
             return parsed_response[base][target]
         except:
             pass

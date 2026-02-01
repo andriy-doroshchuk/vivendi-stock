@@ -11,9 +11,9 @@ DATA_STORAGE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
 CURRENCIES = ('EUR.AUD', 'GBP.AUD')
 STOCK = {
     'VIV.PA':   {'stock': 1565, 'currency': 'EUR', 'multiplier': 1,   'name': 'Vivendi SE'},
-    'HAVAS.AS': {'stock': 911, 'currency': 'EUR', 'multiplier': 1,   'name': 'Havas N.V'},
-    'CAN.L':    {'stock': 891, 'currency': 'GBP', 'multiplier': 0.01, 'name': 'Canal+ SA'},
-    'ALHG.PA':  {'stock': 922, 'currency': 'EUR', 'multiplier': 1,   'name': 'Louis Hachette Group S.A.'}
+    'HAVAS.AS': {'stock': 91,   'currency': 'EUR', 'multiplier': 1,   'name': 'Havas N.V'},
+    'CAN.L':    {'stock': 891,  'currency': 'GBP', 'multiplier': 0.01, 'name': 'Canal+ SA'},
+    'ALHG.PA':  {'stock': 922,  'currency': 'EUR', 'multiplier': 1,   'name': 'Louis Hachette Group S.A.'}
 }
 
 
@@ -62,30 +62,33 @@ class VivendiStock:
         self.data = load_cached_data('cache.json')
         self.last_update = self.data.last_valid_index()
         self.update()
+        self.workdata = self.data.loc[self.data.index >= '2025-12-01']
 
     def update(self):
         now = datetime.datetime.now()
         should_update = self.last_update is None
-        should_update = should_update or self.last_update < now - datetime.timedelta(days=1)
+        if not should_update and now.weekday() in (0, 1, 2, 3, 4):  # only update on weekdays
+            should_update = should_update or self.last_update < now - datetime.timedelta(days=1)
         if should_update:
             self.last_update = now
             self.data = update_stock_data(self.data, download_stock_data(STOCK.keys(), CURRENCIES))
             save_cached_data(self.data, 'cache.json')
 
     def get_data(self, id: str) -> Tuple[pandas.Series, float, float]:
+        workdata = self.workdata
         try:
-            series = self.data[id]
+            series = workdata[id]
             prices = series.values
             curr_price = prices[-1]
             prev_price = prices[-2]
             price_change = round(((curr_price - prev_price) / prev_price) * 100, 2)
             return series, round(curr_price, 3), price_change
         except Exception:
-            return pandas.Series(index=self.data.index), 0, 0
+            return pandas.Series(index=workdata.index), 0, 0
 
 
 if __name__ == '__main__':
     stock = VivendiStock()
-    print(stock.data)
+    print(stock.workdata)
     _, curr_price, change = stock.get_data('HAVAS.AS')
     print(curr_price, change)

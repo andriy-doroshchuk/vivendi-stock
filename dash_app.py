@@ -60,7 +60,7 @@ def stock_graphs():
 
     timestamp = datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')
     graphs = [html.Div(className='center-align', children=f'Generated {timestamp}')]
-    graphs += [get_graph('AUD.VALUE', 'Estimated value in AUD')]
+    # graphs += [get_graph('AUD.VALUE', 'Estimated value in AUD')]
     graphs += [get_graph('STOCK.VALUE', 'Estimated stock value in AUD')]
     graphs += [get_graph(stock, STOCK[stock]['name']) for stock in STOCK]
     return html.Div(className='container', children=graphs)

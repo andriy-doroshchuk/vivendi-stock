@@ -28,13 +28,15 @@ def stock_graphs() -> html.Div:
                 html.Div(className='row', children=html.Hr()),
                 html.Div(className='row', children=[
                     html.Div(className='col-sm-9', children=[
-                        html.H4(className='text-left', children=f'{name} ({key})')
+                        html.H4(className='text-left',
+                                children=f'{name} ({key})')
                     ]),
                     html.Div(className='col-sm-2', children=[
                         html.H2(className='text-right', children=current_price)
                     ]),
                     html.Div(className='col-sm-1', children=[
-                        html.H4(className=f'text-left text-{change_color}', children=change_percent)
+                        html.H4(
+                            className=f'text-left text-{change_color}', children=change_percent)
                     ])
                 ]),
                 html.Div(className='row', children=[
@@ -61,7 +63,8 @@ def stock_graphs() -> html.Div:
         ])
 
     timestamp = datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')
-    graphs = [html.Div(className='center-align', children=f'Generated {timestamp}')]
+    graphs = [html.Div(className='center-align',
+                       children=f'Generated {timestamp}')]
     graphs += [get_graph('STOCK.VALUE', 'Estimated stock value in AUD')]
     graphs += [get_graph(stock, STOCK[stock]['name']) for stock in STOCK]
     return html.Div(className='container', children=graphs)
@@ -69,26 +72,26 @@ def stock_graphs() -> html.Div:
 
 app = Dash(
     'Stock tracker',
-    external_stylesheets=[
-        '/static/stylesheets/bootstrap.css',
-        '/static/stylesheets/styles.css'
-    ]
+    assets_folder=f'{config.APP_ROOT}/static/stylesheets',
 )
 
 app.config['suppress_callback_exceptions'] = True
 app.layout = html.Div(children=[
-    html.H3(className='center-align big-Close', children='Vivendi Group Stock Value Tracker'),
+    html.H3(className='center-align big-Close',
+            children='Vivendi Group Stock Value Tracker'),
     html.Div(className='container center-align', children=[
-        html.Button(className='btn btn-primary', id='refresh-button', n_clicks=0, children='Refresh')
+        html.Button(className='btn btn-primary',
+                    id='refresh-button', n_clicks=0, children='Refresh')
     ]),
     html.Br(),
     html.Div(className='container', children=[
         html.Div(className='row', children=[
             html.Div(className='col-sm-9', children=[
-                html.H4(className='text-left', children='Estimated value in AUD (AUD.VALUE) at 01-03-2024')
+                html.H4(className='text-left',
+                        children='Estimated value in AUD (AUD.VALUE) at 01-03-2024')
             ]),
             html.Div(className='col-sm-2', children=[
-                html.H2(className='text-right', children=17.403)
+                html.H2(className='text-right', children='17.403')
             ]),
             html.Div(className='col-sm-1', children=[])
         ])
@@ -104,4 +107,5 @@ def update_graphs(_):
 
 
 if __name__ == '__main__':
-    app.run(host=config.DASH_HOST, port=config.DASH_PORT, debug=config.DASH_DEBUG)
+    app.run(host=config.DASH_HOST, port=config.DASH_PORT,
+            debug=config.DASH_DEBUG)

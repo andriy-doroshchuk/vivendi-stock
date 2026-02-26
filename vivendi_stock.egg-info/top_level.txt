@@ -1,0 +1,4 @@
+data
+logs
+static
+vivendi_stock

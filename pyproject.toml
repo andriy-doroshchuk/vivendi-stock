@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vivendi-stock"
+version = "0.1.0"
+description = "Vivendi Group stock tracker"
+requires-python = ">=3.12"
+dependencies = [
+    "pandas>=2.0.0,<3.0.0",
+    "dash>=2.14.0,<3.0.0",
+    "requests>=2.31.0,<3.0.0",
+    "pydantic>=2.0.0,<3.0.0",
+    "python-dotenv>=1.0.0,<2.0.0",
+    "gunicorn>=21.0.0,<22.0.0",
+]
+
+[project.scripts]
+vivendi-stock-cli = "vivendi_stock.cli:main"
+vivendi-stock-web = "vivendi_stock.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.pycodestyle]
+max-line-length = 120

@@ -1,12 +1,19 @@
 import datetime
 from dash import Dash, dcc, html, Input, Output, callback
-from vivendi_data import VivendiStock, STOCK
+
+from .vivendi_data import VivendiStock, STOCK
+from .config import config
+
+# Module-level singleton — avoids reconstructing VivendiStock (disk read + potential
+# API calls) on every Refresh button click.
+_stock_data = VivendiStock()
 
 
-def stock_graphs():
-    app_data = VivendiStock()
+def stock_graphs() -> html.Div:
+    app_data = _stock_data
+    app_data.update()
 
-    def get_graph(key, name):
+    def get_graph(key: str, name: str) -> html.Div:
         history, current_price, change_percent = app_data.get_data(key)
 
         if change_percent > 0:
@@ -16,7 +23,7 @@ def stock_graphs():
             change_percent = f'{change_percent}%'
             change_color = 'danger'
 
-        graph = html.Div(className='row', children=[
+        return html.Div(className='row', children=[
             html.Div(className='container', children=[
                 html.Div(className='row', children=html.Hr()),
                 html.Div(className='row', children=[
@@ -40,10 +47,7 @@ def stock_graphs():
                                 'type': 'line',
                                 'name': key
                             }],
-                            'layout': {
-                                # 'title' : f'{name} ({key})',
-                                'height': 400  # px
-                            }
+                            'layout': {'height': 400}
                         },
                         config={
                             'displayModeBar': False,
@@ -56,26 +60,26 @@ def stock_graphs():
             ])
         ])
 
-        return graph
-
     timestamp = datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')
     graphs = [html.Div(className='center-align', children=f'Generated {timestamp}')]
-    # graphs += [get_graph('AUD.VALUE', 'Estimated value in AUD')]
     graphs += [get_graph('STOCK.VALUE', 'Estimated stock value in AUD')]
     graphs += [get_graph(stock, STOCK[stock]['name']) for stock in STOCK]
     return html.Div(className='container', children=graphs)
 
 
-app = Dash('Stock tracker')
-app.css.config.serve_locally = False
-app.css.append_css({'external_url': './static/stylesheets/bootstrap.css'})
-app.css.append_css({'external_url': './static/stylesheets/styles.css'})
+app = Dash(
+    'Stock tracker',
+    external_stylesheets=[
+        '/static/stylesheets/bootstrap.css',
+        '/static/stylesheets/styles.css'
+    ]
+)
 
 app.config['suppress_callback_exceptions'] = True
 app.layout = html.Div(children=[
     html.H3(className='center-align big-Close', children='Vivendi Group Stock Value Tracker'),
     html.Div(className='container center-align', children=[
-        html.Button(className="btn btn-primary", id='refresh-button', n_clicks=0, children='Refresh')
+        html.Button(className='btn btn-primary', id='refresh-button', n_clicks=0, children='Refresh')
     ]),
     html.Br(),
     html.Div(className='container', children=[
@@ -95,8 +99,9 @@ app.layout = html.Div(children=[
 
 
 @callback(Output('output-graphs', 'children'), Input('refresh-button', 'n_clicks'))
-def update_graphs(_): return stock_graphs()
+def update_graphs(_):
+    return stock_graphs()
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8051, debug=True)
+    app.run(host=config.DASH_HOST, port=config.DASH_PORT, debug=config.DASH_DEBUG)

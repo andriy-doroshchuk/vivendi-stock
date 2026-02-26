@@ -1,3 +1,0 @@
-[console_scripts]
-vivendi-stock-cli = vivendi_stock.cli:main
-vivendi-stock-web = vivendi_stock.__main__:main

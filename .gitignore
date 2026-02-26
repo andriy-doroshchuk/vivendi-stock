@@ -1,15 +1,16 @@
-__pycache__/
+# VSCode settings
 .vscode/launch.json
+# Python packaging
+*.egg-info/
+dist/
+build/
+__pycache__/
+*.pyc
+# Environment variables
 .env
 .env.*
 !.env.example
-logs/
-data/ALHG.PA.json
-data/CAN.L.json
-data/EUR.AUD.json
-data/GBP.AUD.json
-data/HAVAS.AS.json
-data/VIV.PA.json
-data/new_data.json
-data/cache.json
 api.key
+# Local logs and data
+logs/
+data/

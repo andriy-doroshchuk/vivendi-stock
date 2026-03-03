@@ -6,13 +6,19 @@ from dash import Dash, dcc, html, Input, Output, callback
 from .core.vivendi_data import VivendiStock, STOCK
 from .utils.config import config
 
-# Module-level singleton — avoids reconstructing VivendiStock (disk read + potential
-# API calls) on every Refresh button click.
-_stock_data = VivendiStock()
+# Module-level singleton initialized lazily to avoid disk/API work during import time.
+_stock_data: VivendiStock | None = None
+
+
+def _get_stock_data() -> VivendiStock:
+    global _stock_data
+    if _stock_data is None:
+        _stock_data = VivendiStock()
+    return _stock_data
 
 
 def stock_graphs() -> html.Div:
-    app_data = _stock_data
+    app_data = _get_stock_data()
     app_data.update()
 
     def get_graph(key: str, name: str) -> html.Div:

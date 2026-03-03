@@ -60,6 +60,7 @@ class VivendiStock:
     def __init__(self) -> None:
         self.data = load_cached_data(config.CACHE_FILE)
         self.last_update = self.data.last_valid_index()
+        self._series_warning_logged: set[str] = set()
         self.update()
 
     def _refresh_workdata(self) -> None:
@@ -94,5 +95,8 @@ class VivendiStock:
                 return series, round(curr_price, 3), 0
             price_change = round(((curr_price - prev_price) / prev_price) * 100, 2)
             return series, round(curr_price, 3), price_change
-        except (KeyError, IndexError, TypeError, ValueError):
+        except (KeyError, IndexError, TypeError, ValueError) as e:
+            if series_id not in self._series_warning_logged:
+                logger.warning('Unable to build output series for %s: %s', series_id, e)
+                self._series_warning_logged.add(series_id)
             return pandas.Series(index=workdata.index, dtype=float), 0, 0

@@ -4,13 +4,13 @@ Vivendi Group stock tracker built with Dash.
 
 ## Requirements
 
-- Python 3.12+
+- Python 3.9+
 - A valid Alpha Vantage API key
 
 ## Setup
 
 1. Create and activate a virtual environment.
-2. Install dependencies:
+2. Install the project:
 
 	```bash
 	pip install -r requirements.txt
@@ -41,7 +41,7 @@ python -m vivendi_stock
 Run the CLI entrypoint to update/load data and print a console summary:
 
 ```bash
-python -m vivendi_stock.cli
+python -m vivendi_stock.cli_app
 ```
 
 After installing the package (`pip install -e .`), you can also run:
@@ -97,12 +97,16 @@ For pyenv, run `pyenv rehash` after install.
 ## Project structure
 
 - `vivendi_stock/` — application package
-  - `dash_app.py` — Dash app layout and callbacks
-  - `vivendi_data.py` — portfolio calculations and cache update flow
-  - `web_api.py` — external API integration and caching
-  - `models.py` — Pydantic validation models
-  - `config.py` — centralized settings
-  - `logger.py` — structured logging setup
+	- `dash_app.py` — Dash app layout and callbacks
+	- `cli_app.py` — CLI entrypoint
+	- `core/`
+		- `vivendi_data.py` — portfolio calculations and cache update flow
+		- `web_api.py` — external API integration and caching
+		- `models.py` — Pydantic validation models
+	- `utils/`
+		- `config.py` — centralized settings
+		- `logger.py` — structured logging setup
+		- `rate_limiter.py` — API request rate limiting
 - `data/` — cached API responses and computed cache file
 - `static/` — stylesheets
 

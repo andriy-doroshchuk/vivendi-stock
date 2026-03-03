@@ -111,12 +111,14 @@ def __download_query(api_key: str | None, function: str, query_id: str, use_cach
     url = f'https://www.alphavantage.co/query?function={function}&outputsize=compact&datatype=json&apikey={api_key}'
 
     data = load_json_data(f'{query_id}.json') if (config.ALPHAVANTAGE_CACHE and use_cache) else {}
+    cache_hit = bool(data)
 
     # Discard cached entries that are Alpha Vantage error/rate-limit responses,
     # identified by the presence of 'Information' or 'Note' top-level keys.
     if data and ('Information' in data or 'Note' in data):
         logger.warning('Cached data for %s contains an API error response — discarding and re-fetching', query_id)
         data = {}
+        cache_hit = False
 
     if data:
         logger.info('Using cached data for %s', query_id)
@@ -131,7 +133,8 @@ def __download_query(api_key: str | None, function: str, query_id: str, use_cach
             logger.warning('API returned an error/rate-limit response for %s — not caching', query_id)
             return {}
 
-    save_json_data(data, f'{query_id}.json')
+    if data and not cache_hit:
+        save_json_data(data, f'{query_id}.json')
     return data
 
 

@@ -100,6 +100,8 @@ def _test_setup() -> bool:
 
 def _print_summary(stock_data: VivendiStock, series_ids: list[str]) -> None:
     print('\nVivendi Stock Data Snapshot')
+    if stock_data.update_status_message:
+        print(stock_data.update_status_message)
     print(f'Generated at: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
     print('-' * 78)
     print(f'{"Series":<14} {"Name":<35} {"Price":>10} {"Change":>10} {"Date":>10}')

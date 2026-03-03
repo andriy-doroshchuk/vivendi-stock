@@ -24,14 +24,16 @@ def update_stock_data(current_data: pandas.DataFrame | None, new_data: pandas.Da
                     if rate == 0.0:
                         data.loc[day, curr] = download_exchange_rate(curr, day)
                 except (KeyError, TypeError, ValueError) as e:
-                    logger.warning('Failed to update exchange rate for %s on %s: %s', curr, day, e)
+                    logger.warning(
+                        f'Failed to update exchange rate for {curr} on {day}: {e}')
         return data
 
     def calc_day_value(row: pandas.Series, stock: bool) -> float:
         value = 0
         for symbol in STOCK.keys():
             currency = STOCK[symbol]['currency']
-            stock_value = row[symbol] * STOCK[symbol]['multiplier'] * row[f'{currency}.AUD']
+            stock_value = row[symbol] * \
+                STOCK[symbol]['multiplier'] * row[f'{currency}.AUD']
             if stock:
                 stock_value *= STOCK[symbol]['stock']
             value += stock_value
@@ -43,7 +45,8 @@ def update_stock_data(current_data: pandas.DataFrame | None, new_data: pandas.Da
             pandas.Series.combine_first
         )
     else:
-        current_data = current_data.combine(new_data, pandas.Series.combine_first)
+        current_data = current_data.combine(
+            new_data, pandas.Series.combine_first)
 
     current_data = update_exchange_rate(current_data.fillna(0))
 
@@ -61,14 +64,18 @@ class VivendiStock:
         self.data = load_cached_data(config.CACHE_FILE)
         cache_sanitized = self._sanitize_cached_data()
         self.last_checkpoint = self._latest_checkpoint()
+        self._last_update_message = ''
         if cache_sanitized:
             save_cached_data(self.data, config.CACHE_FILE)
         self._series_warning_logged: set[str] = set()
         self.update()
 
+    @property
+    def update_status_message(self) -> str:
+        return self._last_update_message
+
     def _sanitize_cached_data(self) -> bool:
         """Normalize index and drop future-dated rows from cache.
-
         Returns True when data was modified.
         """
         if self.data.empty:
@@ -84,7 +91,8 @@ class VivendiStock:
         future_rows = self.data.index > today
         if future_rows.any():
             dropped = int(future_rows.sum())
-            logger.warning('Dropping %s future-dated row(s) from cached data.', dropped)
+            logger.warning(
+                f'Dropping {dropped} future-dated row(s) from cached data.')
             self.data = self.data.loc[~future_rows]
             modified = True
 
@@ -105,19 +113,19 @@ class VivendiStock:
         return checkpoint.normalize()
 
     def _refresh_workdata(self) -> None:
-        self.workdata = self.data.loc[self.data.index >= config.WORKDATA_START_DATE]
+        self.workdata = self.data.loc[self.data.index >=
+                                      config.WORKDATA_START_DATE]
 
     def update(self, force: bool = False) -> None:
         """Update cached stock data when the last checkpoint is older than one day.
-
         Remote market/API queries are never executed on Saturday/Sunday.
         """
         today = datetime.date.today()
         is_weekend = today.weekday() >= 5
 
+        self._last_update_message = 'Using cached data'
         if is_weekend:
-            if force:
-                logger.info('Force update requested on weekend; skipping remote queries.')
+            self._last_update_message += ' (weekend)'
             self._refresh_workdata()
             return
 
@@ -131,13 +139,17 @@ class VivendiStock:
             should_update = True
 
         if should_update:
-            fresh_data = download_stock_data(STOCK.keys(), CURRENCIES, use_cache=False)
+            fresh_data = download_stock_data(
+                STOCK.keys(), CURRENCIES, use_cache=False)
             if not fresh_data.empty:
                 self.data = update_stock_data(self.data, fresh_data)
                 save_cached_data(self.data, config.CACHE_FILE)
                 self.last_checkpoint = self._latest_checkpoint()
+                self._last_update_message = 'Data refreshed from web APIs.'
             else:
-                logger.warning('Update skipped because no fresh market data was returned.')
+                logger.warning(
+                    'Update skipped: no fresh market data was returned.')
+                self._last_update_message += ' (no fresh data from web APIs)'
 
         self._refresh_workdata()
 
@@ -153,10 +165,12 @@ class VivendiStock:
             prev_price = prices[-2]
             if prev_price == 0:
                 return series, round(curr_price, 3), 0
-            price_change = round(((curr_price - prev_price) / prev_price) * 100, 2)
+            price_change = round(
+                ((curr_price - prev_price) / prev_price) * 100, 2)
             return series, round(curr_price, 3), price_change
         except (KeyError, IndexError, TypeError, ValueError) as e:
             if series_id not in self._series_warning_logged:
-                logger.warning('Unable to build output series for %s: %s', series_id, e)
+                logger.warning(
+                    f'Unable to build output series for {series_id}: {e}')
                 self._series_warning_logged.add(series_id)
             return pandas.Series(index=workdata.index, dtype=float), 0, 0

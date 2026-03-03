@@ -52,7 +52,7 @@ vivendi-stock-cli
 
 Useful flags:
 
-- `--force-update` to force API refresh immediately
+- `--force-update` to force API refresh immediately on weekdays (remote queries are skipped on Saturday/Sunday)
 
 Optional environment overrides:
 

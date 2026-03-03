@@ -138,7 +138,7 @@ def main() -> None:
     parser.add_argument(
         '--force-update',
         action='store_true',
-        help='Force refresh data from APIs, bypassing local source cache and weekday/update interval checks.'
+        help='Force refresh data from APIs, bypassing local source cache and checkpoint age checks (never runs remote queries on weekends).'
     )
     args = parser.parse_args()
 

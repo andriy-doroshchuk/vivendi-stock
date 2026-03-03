@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import datetime
 from dash import Dash, dcc, html, Input, Output, callback
 
-from .vivendi_data import VivendiStock, STOCK
-from .config import config
+from .core.vivendi_data import VivendiStock, STOCK
+from .utils.config import config
 
 # Module-level singleton — avoids reconstructing VivendiStock (disk read + potential
 # API calls) on every Refresh button click.
@@ -88,7 +90,7 @@ app.layout = html.Div(children=[
         html.Div(className='row', children=[
             html.Div(className='col-sm-9', children=[
                 html.H4(className='text-left',
-                        children='Estimated value in AUD (AUD.VALUE) at 01-03-2024')
+                        children='Estimated stock value in AUD at 01-03-2024')
             ]),
             html.Div(className='col-sm-2', children=[
                 html.H2(className='text-right', children='17.403')
@@ -102,7 +104,7 @@ app.layout = html.Div(children=[
 
 
 @callback(Output('output-graphs', 'children'), Input('refresh-button', 'n_clicks'))
-def update_graphs(_):
+def update_graphs(_: int) -> html.Div:
     return stock_graphs()
 
 

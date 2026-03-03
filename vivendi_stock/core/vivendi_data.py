@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 import pandas
 
-from typing import Tuple
 from .web_api import download_stock_data, download_exchange_rate, load_cached_data, save_cached_data
-from .config import config
-from .logger import setup_logger
+from ..utils.config import config
+from ..utils.logger import setup_logger
 
 
 CURRENCIES = config.CURRENCIES
@@ -47,7 +48,6 @@ def update_stock_data(current_data: pandas.DataFrame | None, new_data: pandas.Da
     current_data = update_exchange_rate(current_data.fillna(0))
 
     kwargs = {
-        'AUD.VALUE': lambda row: calc_day_value(row, False),
         'STOCK.VALUE': lambda row: calc_day_value(row, True)
     }
     current_data = current_data.assign(**kwargs)
@@ -57,7 +57,7 @@ def update_stock_data(current_data: pandas.DataFrame | None, new_data: pandas.Da
 class VivendiStock:
     """Vivendi portfolio service for loading, updating, and serving stock time-series."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.data = load_cached_data(config.CACHE_FILE)
         self.last_update = self.data.last_valid_index()
         self.update()
@@ -80,7 +80,7 @@ class VivendiStock:
             save_cached_data(self.data, config.CACHE_FILE)
         self._refresh_workdata()
 
-    def get_data(self, series_id: str) -> Tuple[pandas.Series, float, float]:
+    def get_data(self, series_id: str) -> tuple[pandas.Series, float, float]:
         """Return series, latest price, and day-over-day percentage change for a symbol."""
         workdata = self.workdata
         try:

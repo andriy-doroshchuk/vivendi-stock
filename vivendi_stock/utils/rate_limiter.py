@@ -1,4 +1,6 @@
 """Rate limiting utility for API requests."""
+from __future__ import annotations
+
 import time
 import logging
 from dataclasses import dataclass, field

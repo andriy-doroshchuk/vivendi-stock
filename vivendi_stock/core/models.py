@@ -1,4 +1,6 @@
 """Pydantic models for data validation."""
+from __future__ import annotations
+
 from datetime import datetime
 from pydantic import BaseModel, Field, field_validator, model_validator
 

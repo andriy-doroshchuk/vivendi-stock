@@ -1,4 +1,6 @@
 """Centralized configuration for Vivendi Stock Tracker."""
+from __future__ import annotations
+
 import os
 import warnings
 from dataclasses import dataclass, field
@@ -36,9 +38,9 @@ class Config:
     API_TIMEOUT_SECONDS: int = 30
     API_MAX_WORKERS: int = int(os.getenv('API_MAX_WORKERS', '6'))
 
-    APP_ROOT: Path = field(default_factory=lambda: Path(__file__).resolve().parent.parent)
-    DATA_DIR: Path = field(default_factory=lambda: Path(__file__).resolve().parent.parent / 'data')
-    LOG_DIR: Path = field(default_factory=lambda: Path(__file__).resolve().parent.parent / 'logs')
+    APP_ROOT: Path = field(default_factory=lambda: Path(__file__).resolve().parent.parent.parent)
+    DATA_DIR: Path = field(default_factory=lambda: Path(__file__).resolve().parent.parent.parent / 'data')
+    LOG_DIR: Path = field(default_factory=lambda: Path(__file__).resolve().parent.parent.parent / 'logs')
     WORKDATA_START_DATE: str = '2025-12-01'
     CACHE_FILE: str = 'cache.json'
 

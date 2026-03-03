@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import json
 import requests
@@ -6,10 +8,10 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Iterable
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-from .config import config
-from .logger import setup_logger
+from ..utils.config import config
+from ..utils.logger import setup_logger
 from .models import ExchangeRate
-from .rate_limiter import RateLimiter
+from ..utils.rate_limiter import RateLimiter
 
 
 APP_ROOT = str(config.APP_ROOT)
@@ -221,7 +223,7 @@ def download_stock_data(
     return data_frame
 
 
-def download_exchange_rate(currency: str, date: pandas.Timestamp = None) -> float:
+def download_exchange_rate(currency: str, date: pandas.Timestamp | None = None) -> float:
     try:
         base, target = currency.lower().split('.')
     except ValueError:

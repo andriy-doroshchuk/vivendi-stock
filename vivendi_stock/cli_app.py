@@ -1,13 +1,18 @@
 """CLI entrypoint for testing data update and terminal display."""
+from __future__ import annotations
 
 import argparse
+import logging
+import re
 import sys
 from datetime import datetime
 
+import pandas
 import requests
 
-from .vivendi_data import STOCK, VivendiStock
-from .web_api import get_api_key
+from .utils.config import config
+from .core.vivendi_data import STOCK, VivendiStock
+from .core.web_api import get_api_key
 
 
 def _format_change(change: float) -> str:
@@ -15,11 +20,16 @@ def _format_change(change: float) -> str:
     return f'{sign}{change:.2f}%'
 
 
-def _latest_date(series) -> str:
+def _latest_date(series: pandas.Series) -> str:
     non_null = series.dropna()
     if non_null.empty:
         return 'n/a'
     return non_null.index[-1].strftime('%Y-%m-%d')
+
+
+def _redact_message(msg: str) -> str:
+    """Strip 16-char uppercase API key values embedded in Alpha Vantage error messages."""
+    return re.sub(r'[A-Z0-9]{16}', '***REDACTED***', msg)
 
 
 def _test_setup() -> bool:
@@ -48,11 +58,6 @@ def _test_setup() -> bool:
             response = requests.get(url, timeout=10)
             response.raise_for_status()
             payload = response.json()
-            def _redact_message(msg: str) -> str:
-                """Strip any API key values embedded in Alpha Vantage error messages."""
-                import re
-                return re.sub(r'[A-Z0-9]{16}', '***REDACTED***', msg)
-
             quote = payload.get('Global Quote', {})
             price = quote.get('05. price')
             if price:
@@ -75,7 +80,6 @@ def _test_setup() -> bool:
             passed = False
 
     # 3. Data directory
-    from .config import config
     if config.DATA_DIR.is_dir():
         print(f'  [OK] Data directory: {config.DATA_DIR}')
     else:
@@ -107,8 +111,6 @@ def _print_summary(stock_data: VivendiStock, series_ids: list[str]) -> None:
             name = STOCK[series_id]['name']
         elif series_id == 'STOCK.VALUE':
             name = 'Estimated stock value in AUD'
-        elif series_id == 'AUD.VALUE':
-            name = 'Estimated unit value in AUD'
         else:
             name = series_id
 
@@ -138,24 +140,28 @@ def main() -> None:
         action='store_true',
         help='Force refresh data from APIs, bypassing local source cache and weekday/update interval checks.'
     )
-    parser.add_argument(
-        '--include-aud-value',
-        action='store_true',
-        help='Include AUD.VALUE series in output.'
-    )
     args = parser.parse_args()
 
     if args.test_setup:
         ok = _test_setup()
         sys.exit(0 if ok else 1)
 
+    # Suppress library INFO/DEBUG console output so it doesn't mix with tabular print output.
+    # Each vivendi_stock sub-module has its own StreamHandler (via setup_logger), so we must
+    # raise the level on every instantiated logger in the hierarchy.
+    for _name, _obj in logging.Logger.manager.loggerDict.items():
+        if _name.startswith('vivendi_stock') and isinstance(_obj, logging.Logger):
+            for _handler in _obj.handlers:
+                if isinstance(_handler, logging.StreamHandler) and not isinstance(
+                    _handler, logging.FileHandler
+                ):
+                    _handler.setLevel(logging.WARNING)
+
     stock_data = VivendiStock()
     if args.force_update:
         stock_data.update(force=True)
 
     series_ids = ['STOCK.VALUE', *STOCK.keys()]
-    if args.include_aud_value:
-        series_ids = ['AUD.VALUE', *series_ids]
 
     _print_summary(stock_data, series_ids)
 

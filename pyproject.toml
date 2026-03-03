@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "vivendi-stock"
 version = "0.1.0"
 description = "Vivendi Group stock tracker"
-requires-python = ">=3.12"
+requires-python = ">=3.9"
 dependencies = [
     "pandas>=2.0.0,<3.0.0",
     "dash>=2.14.0,<3.0.0",
@@ -17,7 +17,7 @@ dependencies = [
 ]
 
 [project.scripts]
-vivendi-stock-cli = "vivendi_stock.cli:main"
+vivendi-stock-cli = "vivendi_stock.cli_app:main"
 vivendi-stock-web = "vivendi_stock.__main__:main"
 
 [tool.setuptools.packages.find]

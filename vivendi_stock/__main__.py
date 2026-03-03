@@ -1,8 +1,9 @@
 """Package entrypoint for running the Dash app."""
+from __future__ import annotations
 
 import argparse
 
-from .config import config
+from .utils.config import config
 from .dash_app import app
 
 

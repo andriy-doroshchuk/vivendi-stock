@@ -53,7 +53,6 @@ vivendi-stock-cli
 Useful flags:
 
 - `--force-update` to force API refresh immediately
-- `--include-aud-value` to include `AUD.VALUE` in output
 
 Optional environment overrides:
 

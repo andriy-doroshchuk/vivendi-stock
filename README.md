@@ -67,12 +67,6 @@ Boolean env vars accept: `1/0`, `true/false`, `yes/no`, `on/off` (case-insensiti
 
 WSGI app is exposed as `application` in `wsgi.py`.
 
-Example with Gunicorn:
-
-```bash
-gunicorn wsgi:application --bind 0.0.0.0:8051
-```
-
 Optional installed script form:
 
 ```bash

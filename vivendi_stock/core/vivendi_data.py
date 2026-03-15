@@ -124,7 +124,7 @@ class VivendiStock:
         is_weekend = today.weekday() >= 5
 
         self._last_update_message = 'Using cached data'
-        if is_weekend:
+        if is_weekend and not force:
             self._last_update_message += ' (weekend)'
             self._refresh_workdata()
             return
